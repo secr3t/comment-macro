@@ -12,6 +12,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 
+import algorithm.ReduplicativePermutation;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -46,7 +47,9 @@ public class CommentMController implements Initializable {
 	private WebDriver adminDriver;
 	private org.openqa.selenium.Alert alert;
 	private Dimension windowSize;
-
+	private String[] uoVal = {"언", "옵"};
+	private String[] vtdVal = {"승", "무", "패"};
+	
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		System.setProperty("webdriver.chrome.driver", "src/chromedriver.exe");
@@ -139,6 +142,13 @@ public class CommentMController implements Initializable {
 		adminDriver.quit();
 		Stage stage = (Stage) exit.getScene().getWindow();
 		stage.close();
+	}
+	
+	public void makePerm() {
+		ReduplicativePermutation permutation = new ReduplicativePermutation(2, 4);
+		permutation.perm(uoVal, 0);
+		for(String s : permutation.getResults())
+			System.out.println(s);
 	}
 	
 }

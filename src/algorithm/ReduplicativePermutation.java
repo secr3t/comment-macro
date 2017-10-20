@@ -42,5 +42,9 @@ public class ReduplicativePermutation {
             swap(arr, depth, i);
         }
     }
+    
+    public ArrayList<String> getResults() {
+    	return result;
+    }
 }
  
