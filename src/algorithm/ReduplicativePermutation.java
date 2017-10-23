@@ -1,12 +1,15 @@
 package algorithm;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
  
 public class ReduplicativePermutation {
  
     private int n;
     private int r;
-    public ArrayList<String>result = new ArrayList<>();
+    private ArrayList<String>result = new ArrayList<>();
+    public HashSet<String>set = new HashSet<>();
     private String[] res;
     
     public ReduplicativePermutation(int n, int r){
@@ -25,7 +28,7 @@ public class ReduplicativePermutation {
     	String str = "";
     	for(String a : arr)
     		str+=a;
-    	result.add(str);
+    	set.add(str);
     }
  
     public void perm(String[] arr, int depth) {
@@ -44,6 +47,13 @@ public class ReduplicativePermutation {
     }
     
     public ArrayList<String> getResults() {
+    	result.addAll(set);
+    	result.sort(new Comparator<String>() {
+			@Override
+			public int compare(String o1, String o2) {
+				return o1.compareTo(o2);
+			}
+    	});
     	return result;
     }
     /*

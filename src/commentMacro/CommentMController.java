@@ -2,6 +2,7 @@ package commentMacro;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import org.openqa.selenium.By;
@@ -47,9 +48,10 @@ public class CommentMController implements Initializable {
 	private WebDriver adminDriver;
 	private org.openqa.selenium.Alert alert;
 	private Dimension windowSize;
-	private String[] uoVal = {"언", "옵"};
-	private String[] vtdVal = {"승", "무", "패"};
-	
+	private String[] uoVal = {"언", "옵","언", "옵","언", "옵","언", "옵","언", "옵","언", "옵"};
+	private String[] vtdVal = {"승", "무", "패", "승", "무", "패", "승", "무", "패"};
+	private int numUO = 0;
+	private int numVTD = 0;
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		System.setProperty("webdriver.chrome.driver", "src/chromedriver.exe");
@@ -144,11 +146,30 @@ public class CommentMController implements Initializable {
 		stage.close();
 	}
 	
+	public void setUOVal() {
+		numUO = (int) numberOfUO.getValue();
+	}
+	
+	public void setVTDVal() {
+		numVTD = (int) numberOfVTD.getValue();
+	}
+	
 	public void makePerm() {
-		ReduplicativePermutation permutation = new ReduplicativePermutation(2, 4);
-		permutation.perm(uoVal, 0);
-		for(String s : permutation.getResults())
+		ReduplicativePermutation UOpermutation = new ReduplicativePermutation(numUO < 2 ? 2: numUO,numUO);
+		ReduplicativePermutation VTDpermutation = new ReduplicativePermutation(numVTD  < 3 ? 3: numVTD, numVTD);
+		UOpermutation.perm(uoVal, 0);
+		VTDpermutation.perm(vtdVal, 0);
+//		long b = System.currentTimeMillis();
+		List<String> UOoutput = UOpermutation.getResults();
+		for(String s : UOoutput)
 			System.out.println(s);
+		System.out.println("언옵갯수 : " + UOoutput.size() );
+		List<String> VTDoutput = VTDpermutation.getResults();
+		for(String s : VTDoutput)
+			System.out.println(s);
+		System.out.println("승무패갯수 : " + VTDoutput.size() );
+//		long e = System.currentTimeMillis();
+//		System.out.println("소요시간 : " + (e-b) + "(ms)");
 	}
 	
 }
