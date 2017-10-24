@@ -56,7 +56,6 @@ public class CommentMController implements Initializable {
 	public void initialize(URL location, ResourceBundle resources) {
 		System.setProperty("webdriver.chrome.driver", "src/chromedriver.exe");
 		loadAdmin();
-		binding();
 	}
 	
 	public void loadAdmin() {
@@ -123,7 +122,7 @@ public class CommentMController implements Initializable {
 	/*
 	 * binding
 	*/
-	public void binding() {
+/*	public void binding() {
 		bindExit();
 	}
  
@@ -135,41 +134,52 @@ public class CommentMController implements Initializable {
 					e1.printStackTrace();
 				}
 		});
-	}
+	}*/
 	
 	/*
 	 * methods for bind
 	*/
-	public void exit(ActionEvent e) throws InterruptedException {
+	public void exit() {
 		adminDriver.quit();
 		Stage stage = (Stage) exit.getScene().getWindow();
 		stage.close();
 	}
 	
-	public void setUOVal() {
-		numUO = (int) numberOfUO.getValue();
-	}
+	/*
+	 * 뽑을 갯수가 7개 이상일 때 Process가 blocked 상태이기 때문에
+	 * Thread로써 구현한다.
+	*/
 	
-	public void setVTDVal() {
-		numVTD = (int) numberOfVTD.getValue();
-	}
-	
-	public void makePerm() {
-		ReduplicativePermutation UOpermutation = new ReduplicativePermutation(numUO < 2 ? 2: numUO,numUO);
-		ReduplicativePermutation VTDpermutation = new ReduplicativePermutation(numVTD  < 3 ? 3: numVTD, numVTD);
-		UOpermutation.perm(uoVal, 0);
-		VTDpermutation.perm(vtdVal, 0);
+	class PermutationThread extends Thread {
+		@Override
+		public void run() {
+			makePerm();
+		}
+		public void makePerm() {
+			numUO = (int) numberOfUO.getValue();
+			numVTD = (int) numberOfVTD.getValue();
+			ReduplicativePermutation UOpermutation = new ReduplicativePermutation(numUO < 2 ? 2: numUO,numUO);
+			ReduplicativePermutation VTDpermutation = new ReduplicativePermutation(numVTD  < 3 ? 3: numVTD, numVTD);
+			UOpermutation.perm(uoVal, 0);
+			VTDpermutation.perm(vtdVal, 0);
 //		long b = System.currentTimeMillis();
-		List<String> UOoutput = UOpermutation.getResults();
-		for(String s : UOoutput)
-			System.out.println(s);
-		System.out.println("언옵갯수 : " + UOoutput.size() );
-		List<String> VTDoutput = VTDpermutation.getResults();
-		for(String s : VTDoutput)
-			System.out.println(s);
-		System.out.println("승무패갯수 : " + VTDoutput.size() );
+			List<String> UOoutput = UOpermutation.getResults();
+			for(String s : UOoutput)
+				System.out.println(s);
+			System.out.println("언옵갯수 : " + UOoutput.size() );
+			List<String> VTDoutput = VTDpermutation.getResults();
+			for(String s : VTDoutput)
+				System.out.println(s);
+			System.out.println("승무패갯수 : " + VTDoutput.size() );
 //		long e = System.currentTimeMillis();
 //		System.out.println("소요시간 : " + (e-b) + "(ms)");
+		}
 	}
+	
+	public void makePermThread() {
+		PermutationThread t1 = new PermutationThread();
+		t1.start();
+	}
+	
 	
 }
