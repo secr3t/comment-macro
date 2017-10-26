@@ -18,7 +18,7 @@
             <Label layoutX="14.0" layoutY="52.0" text="관리자 PW" />
             <PasswordField fx:id="adminPw" layoutX="200.0" layoutY="48.0" prefHeight="23.0" prefWidth="190.0" />
             <Label layoutX="14.0" layoutY="85.0" text="댓글 URL" />
-            <Button fx:id="createBtn" layoutX="70.0" layoutY="210.0" mnemonicParsing="false" onMouseClicked="#makePermThread" text="경우의 수 생성" />
+            <Button fx:id="createBtn" layoutX="70.0" layoutY="210.0" mnemonicParsing="false" onMouseClicked="#makePerm" text="경우의 수 생성" />
             <Button fx:id="commentUOBtn" layoutX="176.0" layoutY="210.0" mnemonicParsing="false" text="언옵 댓글 달기" />
             <Button fx:id="commentVTDBtn" layoutX="281.0" layoutY="210.0" mnemonicParsing="false" text="승무패 댓글 달기" />
             <Button fx:id="loginBtn" layoutX="11.0" layoutY="210.0" mnemonicParsing="false" onMouseClicked="#adminLogin" text="로그인" />

@@ -176,7 +176,7 @@ public class CommentMController implements Initializable {
 		}
 	}
 	
-	public void makePermThread() {
+	public void makePerm() {
 		PermutationThread t1 = new PermutationThread();
 		t1.start();
 	}
