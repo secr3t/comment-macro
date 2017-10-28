@@ -3,6 +3,7 @@ package commentMacro;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.ResourceBundle;
 
 import org.openqa.selenium.By;
@@ -18,6 +19,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
@@ -25,50 +27,57 @@ import javafx.stage.Stage;
 
 public class CommentMController implements Initializable {
 	@FXML
-	private TextField adminId;				// adminIdField
+	private TextField adminIdInput; // adminIdField
 	@FXML
-	private PasswordField adminPw;		// pw
+	private PasswordField adminPwInput; // pw
 	@FXML
-	private Slider numberOfUO;			// numberof UnderOver probability 
+	private Slider uoSlider; // numberof UnderOver probability
 	@FXML
-	private Slider numberOfVTD;			// numberof VictoryTieDefeat probability 
+	private Slider vtdSlider; // numberof VictoryTieDefeat probability
 	@FXML
-	private TextField	urlInput;
+	private TextField urlInput; // 댓글 작성할 url
 	@FXML
-	private Button createBtn;
+	private Button createBtn; // 가짓수 생성 버튼
 	@FXML
-	private Button loginBtn;
+	private Button loginBtn; // 관리자 로그인
 	@FXML
-	private Button commentUOBtn;
+	private Button exitBtn; // 종료 버튼
 	@FXML
-	private Button commentVTDBtn;
+	private TextField uoInput; // 작성할 가짓수
 	@FXML
-	private Button exit;
-	
+	private TextField vtdInput; // 작성할 가짓수
+	@FXML
+	private Label uoProbLabel; // 생성된 언옵 가짓수
+	@FXML
+	private Label vtdProbLabel;
+
 	private WebDriver adminDriver;
 	private org.openqa.selenium.Alert alert;
 	private Dimension windowSize;
-	private String[] uoVal = {"언", "옵","언", "옵","언", "옵","언", "옵","언", "옵","언", "옵"};
-	private String[] vtdVal = {"승", "무", "패", "승", "무", "패", "승", "무", "패"};
-	private int numUO = 0;
-	private int numVTD = 0;
+	private String[] uoVal = { "언", "옵", "언", "옵", "언", "옵", "언", "옵", "언", "옵", "언", "옵" };
+	private String[] vtdVal = { "승", "무", "패", "승", "무", "패", "승", "무", "패" };
+	private int numUO = 0; // 고를 경기수
+	private int numVTD = 0; // 고를 경기수
+	private List<String> vtdOutput = new ArrayList<>();
+	private List<String> uoOutput = new ArrayList<>();
+
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		System.setProperty("webdriver.chrome.driver", "src/chromedriver.exe");
 		loadAdmin();
 	}
-	
+
 	public void loadAdmin() {
 		adminDriver = new ChromeDriver();
 		adminDriver.manage().window().maximize();
 		windowSize = adminDriver.manage().window().getSize();
-		adminDriver.manage().window().setPosition(new Point(0, 0));   
-		adminDriver.manage().window().setSize(new Dimension(windowSize.getWidth()/2, windowSize.getHeight()/2));
+		adminDriver.manage().window().setPosition(new Point(0, 0));
+		adminDriver.manage().window().setSize(new Dimension(windowSize.getWidth() / 2, windowSize.getHeight() / 2));
 	}
 
 	/*
-	 * write comment methods 
-	*/
+	 * write comment methods
+	 */
 	public void writeComment() throws InterruptedException {
 		String send = "";
 		WebElement comment = adminDriver.findElement(By.cssSelector("#comment"));
@@ -100,16 +109,15 @@ public class CommentMController implements Initializable {
 	public void scrollIntoView(WebDriver driver, WebElement element) {
 		runScript(driver, "arguments[0].scrollIntoView(true)", element);
 	}
-	
+
 	/*
 	 * adminLogin
-	*/
-	
+	 */
+
 	public void adminLogin() {
-		adminDriver.findElement(By.cssSelector("#login_id")).sendKeys(adminId.getText());
-		adminDriver.findElement(By.cssSelector("#login_pass")).sendKeys(adminPw.getText());
-		WebElement loginBtn = 
-				adminDriver.findElement(By.cssSelector("#login-wrap > form > button"));
+		adminDriver.findElement(By.cssSelector("#login_id")).sendKeys(adminIdInput.getText());
+		adminDriver.findElement(By.cssSelector("#login_pass")).sendKeys(adminPwInput.getText());
+		WebElement loginBtn = adminDriver.findElement(By.cssSelector("#login-wrap > form > button"));
 		try {
 			loginBtn.click();
 		} catch (Exception e) {
@@ -117,69 +125,112 @@ public class CommentMController implements Initializable {
 			loginBtn.click();
 		}
 	}
-	
-	
-	/*
-	 * binding
-	*/
-/*	public void binding() {
-		bindExit();
-	}
- 
-	public void bindExit() {
-		exit.setOnAction(e->{
-				try {
-					exit(e);
-				} catch (InterruptedException e1) {
-					e1.printStackTrace();
-				}
-		});
-	}*/
-	
+
 	/*
 	 * methods for bind
-	*/
+	 */
 	public void exit() {
 		adminDriver.quit();
-		Stage stage = (Stage) exit.getScene().getWindow();
+		Stage stage = (Stage) exitBtn.getScene().getWindow();
 		stage.close();
 	}
-	
+
 	/*
-	 * 뽑을 갯수가 7개 이상일 때 Process가 blocked 상태이기 때문에
-	 * Thread로써 구현한다.
-	*/
-	
+	 * Main thread에서 가짓수를 생성하면 Process가 blocked 상태이기 때문에 뽑을 갯수가 7개 이상일 때 2초 이상 동작이
+	 * 방해되는 현상이 발생한다. 따라서 MultiThread로 구현한다.
+	 */
+
 	class PermutationThread extends Thread {
 		@Override
 		public void run() {
 			makePerm();
+			this.interrupt();
 		}
+
 		public void makePerm() {
-			numUO = (int) numberOfUO.getValue();
-			numVTD = (int) numberOfVTD.getValue();
-			ReduplicativePermutation UOpermutation = new ReduplicativePermutation(numUO < 2 ? 2: numUO,numUO);
-			ReduplicativePermutation VTDpermutation = new ReduplicativePermutation(numVTD  < 3 ? 3: numVTD, numVTD);
+			numUO = (int) uoSlider.getValue();
+			numVTD = (int) vtdSlider.getValue();
+			ReduplicativePermutation UOpermutation = new ReduplicativePermutation(numUO < 2 ? 2 : numUO, numUO);
+			ReduplicativePermutation VTDpermutation = new ReduplicativePermutation(numVTD < 3 ? 3 : numVTD, numVTD);
 			UOpermutation.perm(uoVal, 0);
 			VTDpermutation.perm(vtdVal, 0);
-//		long b = System.currentTimeMillis();
-			List<String> UOoutput = UOpermutation.getResults();
-			for(String s : UOoutput)
+			// long b = System.currentTimeMillis();
+			uoOutput = UOpermutation.getResults();
+			for (String s : uoOutput)
 				System.out.println(s);
-			System.out.println("언옵갯수 : " + UOoutput.size() );
-			List<String> VTDoutput = VTDpermutation.getResults();
-			for(String s : VTDoutput)
+			System.out.println("언옵갯수 : " + uoOutput.size());
+			vtdOutput = VTDpermutation.getResults();
+			for (String s : vtdOutput)
 				System.out.println(s);
-			System.out.println("승무패갯수 : " + VTDoutput.size() );
-//		long e = System.currentTimeMillis();
-//		System.out.println("소요시간 : " + (e-b) + "(ms)");
+			System.out.println("승무패갯수 : " + vtdOutput.size());
+			// long e = System.currentTimeMillis();
+			// System.out.println("소요시간 : " + (e-b) + "(ms)");
 		}
 	}
-	
+
 	public void makePerm() {
 		PermutationThread t1 = new PermutationThread();
 		t1.start();
+		while (t1.isAlive()) {
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		uoProbLabel.setText(String.valueOf(uoOutput.size()));
+		vtdProbLabel.setText(String.valueOf(vtdOutput.size()));
+	}
+
+	public void commentUo() {
+		String uoInputText = uoInput.getText();
+		int numOfUO;
+		System.out.println(uoInputText);
+		try {
+			Integer.parseInt(uoInputText);
+		} catch (NumberFormatException e) {
+			System.out.println(e.getMessage() + "\t 숫자가 아닙니다.");
+		}
+	}
+
+	public void commentVtd() {
+		String vtdInputText = vtdInput.getText();
+		int numOfVTD;
+		System.out.println(vtdInputText);
+		try {
+			Integer.parseInt(vtdInputText);
+		} catch (NumberFormatException e) {
+			System.out.println(e.getMessage() + "\t 숫자가 아닙니다.");
+		}
 	}
 	
-	
-}
+	public void writeComment(List<String> contents, int nums) throws InterruptedException {
+		adminDriver.get(urlInput.getText());
+		for(int i = nums; i > 0; i--) {
+			Random rand = new Random();
+			int randomNum = rand.nextInt(i);
+			WebElement comment = adminDriver.findElement(By.cssSelector("#comment"));
+			scrollIntoView(adminDriver, comment);
+			comment.clear();
+			String selectedComment = contents.get(randomNum);
+			contents.remove(randomNum);
+			comment.sendKeys(selectedComment);
+			
+			Thread.sleep(200);
+			String url = adminDriver.getCurrentUrl();
+			String value = url.split("b_key=")[1];
+			value = value.split("&")[0];
+			((JavascriptExecutor) adminDriver).executeScript("Javascript:BoardReplyWrite(" + value +")");
+			try {
+				alert = adminDriver.switchTo().alert();
+				alert.accept();
+				} catch (Exception e) {
+					System.out.println("alert창이 없음");
+				}
+				adminDriver.switchTo().defaultContent();
+			}
+			
+		}
+	}
+
