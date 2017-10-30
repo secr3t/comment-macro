@@ -73,6 +73,7 @@ public class CommentMController implements Initializable {
 		windowSize = adminDriver.manage().window().getSize();
 		adminDriver.manage().window().setPosition(new Point(0, 0));
 		adminDriver.manage().window().setSize(new Dimension(windowSize.getWidth() / 2, windowSize.getHeight() / 2));
+		adminDriver.get("http://www.815asiabet.com/admin/index.php");
 	}
 
 	/*
@@ -135,6 +136,111 @@ public class CommentMController implements Initializable {
 		stage.close();
 	}
 
+	public void makePerm() {
+		PermutationThread t1 = new PermutationThread();
+		t1.start();
+		while (t1.isAlive()) {
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		uoProbLabel.setText(String.valueOf(uoOutput.size()));
+		vtdProbLabel.setText(String.valueOf(vtdOutput.size()));
+	}
+
+	public void commentUo() {
+		String uoInputText = uoInput.getText();
+		int numOfUO = 0;
+		try {
+			numOfUO = Integer.parseInt(uoInputText);
+			if(numOfUO > uoOutput.size()) {
+				numOfUO = uoOutput.size();
+				uoInput.setText(String.valueOf(numOfUO));
+			}
+			System.out.println(uoInputText);
+			WritingThread thread = new WritingThread();
+			thread.setContents(uoOutput);
+			thread.setNums(numOfUO);
+			thread.run();
+		} catch (NumberFormatException e) {
+			System.out.println(e.getMessage() + "\t 숫자가 아닙니다.");
+			uoInput.setText("");
+		}		
+
+	}
+
+	public void commentVtd() {
+		String vtdInputText = vtdInput.getText();
+		int numOfVTD = 0;
+		try {
+			numOfVTD = Integer.parseInt(vtdInputText);
+			if(numOfVTD > vtdOutput.size()) {
+				numOfVTD = vtdOutput.size();
+				vtdInput.setText(String.valueOf(numOfVTD));
+			}
+			System.out.println(vtdInputText);
+			WritingThread thread = new WritingThread();
+			thread.setContents(vtdOutput);
+			thread.setNums(numOfVTD);
+			thread.run();
+		} catch (NumberFormatException e) {
+			System.out.println(e.getMessage() + "\t 숫자가 아닙니다.");
+			vtdInput.setText("");
+		}
+	}
+	
+	class WritingThread extends Thread {
+		private List<String>contents = new ArrayList<>();
+		private int nums;
+		public void setContents(List<String> contents) {
+			this.contents = contents;
+		}
+		public void setNums(int nums) {
+			this.nums = nums;
+		}
+		@Override
+		public void run() {
+			try {
+				writeComment(contents, nums);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			this.interrupt();
+		}
+	}
+
+	public void writeComment(List<String> contents, int nums) throws InterruptedException {
+		adminDriver.get(urlInput.getText());
+		for (int i = nums; i > 0; i--) {
+			Random rand = new Random();
+			int randomNum = rand.nextInt(i);
+			WebElement comment = adminDriver.findElement(By.cssSelector("#comment"));
+			scrollIntoView(adminDriver, comment);
+			comment.clear();
+			String selectedComment = contents.get(randomNum);
+			contents.remove(randomNum);
+			comment.sendKeys(selectedComment);
+			Thread.sleep(200);
+			String url = adminDriver.getCurrentUrl();
+			String value = url.split("b_key=")[1];
+			value = value.split("&")[0];
+			((JavascriptExecutor) adminDriver).executeScript("Javascript:BoardReplyWrite(" + value + ")");
+			try {
+				alert = adminDriver.switchTo().alert();
+				alert.accept();
+			} catch (Exception e) {
+				System.out.println("alert창이 없음");
+			}
+			adminDriver.switchTo().defaultContent();
+		}
+
+	}
+
+	
+	
 	/*
 	 * Main thread에서 가짓수를 생성하면 Process가 blocked 상태이기 때문에 뽑을 갯수가 7개 이상일 때 2초 이상 동작이
 	 * 방해되는 현상이 발생한다. 따라서 MultiThread로 구현한다.
@@ -168,69 +274,4 @@ public class CommentMController implements Initializable {
 		}
 	}
 
-	public void makePerm() {
-		PermutationThread t1 = new PermutationThread();
-		t1.start();
-		while (t1.isAlive()) {
-			try {
-				Thread.sleep(10);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		uoProbLabel.setText(String.valueOf(uoOutput.size()));
-		vtdProbLabel.setText(String.valueOf(vtdOutput.size()));
-	}
-
-	public void commentUo() {
-		String uoInputText = uoInput.getText();
-		int numOfUO;
-		System.out.println(uoInputText);
-		try {
-			Integer.parseInt(uoInputText);
-		} catch (NumberFormatException e) {
-			System.out.println(e.getMessage() + "\t 숫자가 아닙니다.");
-		}
-	}
-
-	public void commentVtd() {
-		String vtdInputText = vtdInput.getText();
-		int numOfVTD;
-		System.out.println(vtdInputText);
-		try {
-			Integer.parseInt(vtdInputText);
-		} catch (NumberFormatException e) {
-			System.out.println(e.getMessage() + "\t 숫자가 아닙니다.");
-		}
-	}
-	
-	public void writeComment(List<String> contents, int nums) throws InterruptedException {
-		adminDriver.get(urlInput.getText());
-		for(int i = nums; i > 0; i--) {
-			Random rand = new Random();
-			int randomNum = rand.nextInt(i);
-			WebElement comment = adminDriver.findElement(By.cssSelector("#comment"));
-			scrollIntoView(adminDriver, comment);
-			comment.clear();
-			String selectedComment = contents.get(randomNum);
-			contents.remove(randomNum);
-			comment.sendKeys(selectedComment);
-			
-			Thread.sleep(200);
-			String url = adminDriver.getCurrentUrl();
-			String value = url.split("b_key=")[1];
-			value = value.split("&")[0];
-			((JavascriptExecutor) adminDriver).executeScript("Javascript:BoardReplyWrite(" + value +")");
-			try {
-				alert = adminDriver.switchTo().alert();
-				alert.accept();
-				} catch (Exception e) {
-					System.out.println("alert창이 없음");
-				}
-				adminDriver.switchTo().defaultContent();
-			}
-			
-		}
-	}
-
+}
