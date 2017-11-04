@@ -213,8 +213,8 @@ public class CommentMController implements Initializable {
 	}
 
 	public void writeComment(List<String> contents, int nums) throws InterruptedException {
-		adminDriver.get(urlInput.getText());
 		for (int i = nums; i > 0; i--) {
+			adminDriver.get(urlInput.getText());
 			Random rand = new Random();
 			int randomNum = rand.nextInt(i);
 			WebElement comment = adminDriver.findElement(By.cssSelector("#comment"));
