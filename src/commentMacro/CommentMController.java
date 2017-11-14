@@ -73,7 +73,7 @@ public class CommentMController implements Initializable {
 		windowSize = adminDriver.manage().window().getSize();
 		adminDriver.manage().window().setPosition(new Point(0, 0));
 		adminDriver.manage().window().setSize(new Dimension(windowSize.getWidth() / 2, windowSize.getHeight() / 2));
-		adminDriver.get("http://www.815asiabet.com/admin/index.php");
+		adminDriver.get("url ");
 	}
 
 	/*
